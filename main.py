@@ -6,8 +6,9 @@ import numpy as np
 import tempfile
 import scipy.io.wavfile
 from faster_whisper import WhisperModel
+import goto
   
-model = WhisperModel("base.en", device="cpu", compute_type="int8") # you can try "small", "medium", "large" if GPU is available
+model = WhisperModel("small.en", device="cpu", compute_type="int8") # you can try "small", "medium", "large" if GPU is available
 
 SAMPLE_RATE = 16000
 DURATION = 5  # seconds
@@ -65,6 +66,25 @@ def click_entry(word):
         for (txt, x0, y0, x1, y1) in words_phys
     ]
     click.click_word(word, words_logical)
+
+def handle_command(command):
+    command = command.lower()
+    if command.startswith("open "):
+        app_name = command.replace("open ", "")
+        print(open.perform_action(app_name))
+    elif command.startswith("click "):
+        keyword = command.replace("click ", "")
+        click.main_threaded(keyword)
+    # Add this new section for "go to"
+    elif command.startswith("go to "):
+        site_query = command.replace("go to ", "", 1).strip()
+        goto.open_website_threaded(site_query)
+    elif command in ["exit", "quit"]:
+        print("👋 Exiting VoicePilot.")
+        return False
+    else:
+        print("🤖 Unknown command. Try: 'open notepad', 'click submit', or 'go to youtube'")
+    return True
 
 click.main_threaded = main_threaded_click
 
