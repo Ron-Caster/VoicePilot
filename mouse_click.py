@@ -7,7 +7,7 @@ import os
 # ——— USER CONFIG ——————————————————————————————————————————————————
 TESSDATA_FOLDER = r"C:\Program Files\Tesseract-OCR\tessdata"
 SCREENSHOT_PATH = "screen.png"
-OCR_DPI         = 300   # bump up small‑text accuracy
+OCR_DPI         = 900   # bump up small‑text accuracy
 # ————————————————————————————————————————————————————————————————
 
 def get_windows_scaling():

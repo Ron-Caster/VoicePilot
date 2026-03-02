@@ -1,14 +1,13 @@
-import open
-import click
+import app_open
+import mouse_click as click
 import threading
 import sounddevice as sd
-import numpy as np
 import tempfile
 import scipy.io.wavfile
-from faster_whisper import WhisperModel
+from groq import Groq
 import goto
-  
-model = WhisperModel("small.en", device="cpu", compute_type="int8") # you can try "small", "medium", "large" if GPU is available
+
+client = Groq()
 
 SAMPLE_RATE = 16000
 DURATION = 5  # seconds
@@ -22,23 +21,24 @@ def record_audio():
 def transcribe(audio):
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
         scipy.io.wavfile.write(f.name, SAMPLE_RATE, audio)
-        segments, _ = model.transcribe(f.name)
-        return "".join(segment.text for segment in segments).strip()
+        tmp_path = f.name
 
-def handle_command(command):
-    command = command.lower()
-    if command.startswith("open "):
-        app_name = command.replace("open ", "")
-        print(open.perform_action(app_name))
-    elif command.startswith("click "):
-        keyword = command.replace("click ", "")
-        click.main_threaded(keyword)
-    elif command in ["exit", "quit"]:
-        print("👋 Exiting VoicePilot.")
-        return False
-    else:
-        print("🤖 Unknown command. Try: 'open notepad', 'click submit', or 'exit'")
-    return True
+    try:
+        with open(tmp_path, "rb") as fh:
+            transcription = client.audio.transcriptions.create(
+                file=(tmp_path, fh.read()),
+                model="whisper-large-v3-turbo",
+                temperature=0,
+                response_format="verbose_json",
+            )
+        if isinstance(transcription, dict):
+            return transcription.get("text", "")
+        return getattr(transcription, "text", None) or str(transcription)
+    except Exception as e:
+        print(f"❌ Transcription failed: {e}")
+        return ""
+
+# (Note: final `handle_command` with goto support is defined later.)
 
 def main():
     print("🧠 VoicePilot (Whisper STT) Ready. Say: 'open app' or 'click word'")
@@ -68,10 +68,10 @@ def click_entry(word):
     click.click_word(word, words_logical)
 
 def handle_command(command):
-    command = command.lower()
+    command = command.strip().lower()
     if command.startswith("open "):
         app_name = command.replace("open ", "")
-        print(open.perform_action(app_name))
+        print(app_open.perform_action(app_name))
     elif command.startswith("click "):
         keyword = command.replace("click ", "")
         click.main_threaded(keyword)

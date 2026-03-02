@@ -2,10 +2,9 @@ import os
 import json
 import webbrowser
 import threading
-import time
 
 try:
-    from langchain.chat_models import init_chat_model
+    from langchain.chat_models import init_chat_model # This actually remains valid, but often comes from langchain-community or specific providers
     from langchain_core.messages import SystemMessage, HumanMessage
     LANGCHAIN_AVAILABLE = True
 except ImportError:
@@ -23,7 +22,7 @@ system_prompt = (
 model = None
 if LANGCHAIN_AVAILABLE and "GROQ_API_KEY" in os.environ:
     try:
-        model = init_chat_model("gemma2-9b-it", model_provider="groq")
+        model = init_chat_model("llama-3.1-8b-instant", model_provider="groq")
     except Exception as e:
         print(f"⚠️ Model initialization failed: {str(e)}")
 
